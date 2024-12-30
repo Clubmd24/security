@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<header>
+    <h1>Infinity Arena Security Wiki - Admin Panel</h1>
+</header>
+<div class="container">
+    <h2>Add New User</h2>
+    <form method="POST">
+        <input type="hidden" name="add_user">
+        <label for="username">Username:</label>
+        <input type="text" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" name="password" required>
+        <label for="role">Role:</label>
+        <select name="role">
+            <option value="standard">Standard</option>
+            <option value="administrator">Administrator</option>
+        </select>
+        <button type="submit">Add User</button>
+    </form>
+    <h2>Current Users</h2>
+    <ul>
+        {% for user in users %}
+        <li>{{ user['username'] }} - {{ user['role'] }}
+            <a href="/delete_user/{{ user['id'] }}">Delete</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+<footer>
+    <p>&copy; 2024 Infinity Arena Security Wiki</p>
+</footer>
+</body>
+</html>
