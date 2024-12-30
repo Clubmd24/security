@@ -4,7 +4,7 @@ import os
 import pymysql
 import requests
 from math import radians, cos, sin, sqrt, atan2
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -14,7 +14,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Parse JAWSDB_URL environment variable
-jawsdb_url = "mysql://roqj6vrs3u9lbrbg:s0176e7q4crbscml@bqmayq5x95g1sgr9.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/tsp07coyqwcok0uk"
+jawsdb_url = "mysql://nxaxzpcp3prwm7vg:p7wy9w6tmo0pd3uf@kavfu5f7pido12mr.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/muap52lypvb0sdgl"
 parsed_url = urlparse(jawsdb_url)
 DB_HOST = parsed_url.hostname
 DB_USER = parsed_url.username
@@ -27,27 +27,41 @@ ALLOWED_RADIUS = 50  # in meters
 GEO_API_URL = "https://ipapi.co/{ip}/json/"
 
 def init_db():
-    conn = pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME)
-    cursor = conn.cursor()
-    # Users table
-    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-                      id INT AUTO_INCREMENT PRIMARY KEY,
-                      username VARCHAR(255) UNIQUE NOT NULL,
-                      password VARCHAR(255) NOT NULL,
-                      role VARCHAR(50) NOT NULL)''')
-    # Images table
-    cursor.execute('''CREATE TABLE IF NOT EXISTS images (
-                      id INT AUTO_INCREMENT PRIMARY KEY,
-                      full_name VARCHAR(255) NOT NULL,
-                      date_barred DATE NOT NULL,
-                      date_bar_expires DATE NOT NULL,
-                      reason TEXT NOT NULL)''')
-    # Default admin user
-    cursor.execute("INSERT IGNORE INTO users (username, password, role) VALUES ('admin', 'admin', 'administrator')")
-    # Main super user
-    cursor.execute("INSERT IGNORE INTO users (username, password, role) VALUES ('Kieran Jenkinson', '230885', 'administrator')")
-    conn.commit()
-    conn.close()
+    try:
+        conn = pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME)
+        cursor = conn.cursor()
+
+        # Users table
+        cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                          id INT AUTO_INCREMENT PRIMARY KEY,
+                          username VARCHAR(255) UNIQUE NOT NULL,
+                          password VARCHAR(255) NOT NULL,
+                          role VARCHAR(50) NOT NULL)''')
+
+        # Images table
+        cursor.execute('''CREATE TABLE IF NOT EXISTS images (
+                          id INT AUTO_INCREMENT PRIMARY KEY,
+                          full_name VARCHAR(255) NOT NULL,
+                          date_barred DATE NOT NULL,
+                          date_bar_expires DATE NOT NULL,
+                          reason TEXT NOT NULL,
+                          image_filename VARCHAR(255))''')
+
+        # Check for existing admin user
+        cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'admin'")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("INSERT INTO users (username, password, role) VALUES ('admin', 'admin', 'administrator')")
+
+        # Check for the main super user
+        cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'Kieran Jenkinson'")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("INSERT INTO users (username, password, role) VALUES ('Kieran Jenkinson', '230885', 'administrator')")
+
+        conn.commit()
+    except pymysql.MySQLError as e:
+        print(f"Error initializing database: {e}")
+    finally:
+        conn.close()
 
 init_db()
 
@@ -184,6 +198,7 @@ def admin():
             date_barred = request.form['date_barred']
             date_bar_expires = request.form['date_bar_expires']
             reason = request.form['reason']
+            image = request.files['image']
 
             if not full_name.strip():
                 flash('Full Name is required')
@@ -193,15 +208,22 @@ def admin():
                 flash('Date Bar Expires is required')
             elif not reason.strip():
                 flash('Reason is required')
+            elif not image or image.filename == '':
+                flash('Image is required')
             else:
-                cursor.execute('INSERT INTO images (full_name, date_barred, date_bar_expires, reason) VALUES (%s, %s, %s, %s)', 
-                               (full_name, date_barred, date_bar_expires, reason))
+                filename = secure_filename(image.filename)
+                image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                image.save(image_path)
+
+                cursor.execute('INSERT INTO images (full_name, date_barred, date_bar_expires, reason, image_filename) VALUES (%s, %s, %s, %s, %s)', 
+                               (full_name, date_barred, date_bar_expires, reason, filename))
                 conn.commit()
                 flash('Record added successfully')
 
     cursor.execute('SELECT * FROM users')
     users = cursor.fetchall()
     conn.close()
+
     return render_template('admin.html', users=users)
 
 @app.route('/delete_user/<int:user_id>')
@@ -215,6 +237,52 @@ def delete_user(user_id):
     conn.commit()
     conn.close()
     flash('User deleted successfully')
+    return redirect(url_for('admin'))
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    username = request.form['username']
+    password = request.form['password']
+    role = request.form['role']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('INSERT INTO users (username, password, role) VALUES (%s, %s, %s)', (username, password, role))
+        conn.commit()
+        flash('User added successfully!')
+    except pymysql.IntegrityError:
+        flash('Failed to add user: username already exists.')
+
+    conn.close()
+    return redirect(url_for('admin'))
+
+@app.route('/add_entry', methods=['POST'])
+def add_entry():
+    full_name = request.form['full_name']
+    date_barred = request.form['date_barred']
+    date_bar_expires = request.form['date_bar_expires']
+    reason = request.form['reason']
+    image = request.files['image']
+
+    if not image or image.filename == '':
+        flash('Image is required')
+        return redirect(url_for('admin'))
+
+    filename = secure_filename(image.filename)
+    image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    image.save(image_path)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('INSERT INTO images (full_name, date_barred, date_bar_expires, reason, image_filename) VALUES (%s, %s, %s, %s, %s)', 
+                   (full_name, date_barred, date_bar_expires, reason, filename))
+    conn.commit()
+    conn.close()
+
+    flash('Entry added successfully!')
     return redirect(url_for('admin'))
 
 if __name__ == '__main__':
