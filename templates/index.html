@@ -28,26 +28,19 @@
         </select>
         <button type="submit">Search</button>
     </form>
-    <table>
-        <thead>
-            <tr>
-                <th>Full Name</th>
-                <th>Date Barred</th>
-                <th>Date Bar Expires</th>
-                <th>Reason</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for record in records %}
-            <tr>
-                <td>{{ record['full_name'] }}</td>
-                <td>{{ record['date_barred'] }}</td>
-                <td>{{ record['date_bar_expires'] }}</td>
-                <td>{{ record['reason'] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="records-container">
+        {% for record in records %}
+        <div class="record">
+            <img src="{{ url_for('static', filename='uploads/' ~ record['image_filename']) }}" alt="Image of {{ record['full_name'] }}">
+            <div class="details">
+                <p><strong>Full Name:</strong> {{ record['full_name'] }}</p>
+                <p><strong>Date Barred:</strong> {{ record['date_barred'] }}</p>
+                <p><strong>Date Bar Expires:</strong> {{ record['date_bar_expires'] }}</p>
+                <p><strong>Reason:</strong> {{ record['reason'] }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 <footer>
     <p>&copy; 2024 Infinity Arena Security Wiki</p>
