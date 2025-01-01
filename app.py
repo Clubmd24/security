@@ -13,8 +13,8 @@ UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Parse JAWSDB_URL environment variable
-jawsdb_url = "mysql://nxaxzpcp3prwm7vg:p7wy9w6tmo0pd3uf@kavfu5f7pido12mr.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/muap52lypvb0sdgl"
+# Parse new connection string
+jawsdb_url = "mysql://roqj6vrs3u9lbrbg:s0176e7q4crbscml@bqmayq5x95g1sgr9.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/tsp07coyqwcok0uk"
 parsed_url = urlparse(jawsdb_url)
 DB_HOST = parsed_url.hostname
 DB_USER = parsed_url.username
@@ -28,8 +28,16 @@ GEO_API_URL = "https://ipapi.co/{ip}/json/"
 
 def init_db():
     try:
-        conn = pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME)
-        cursor = conn.cursor()
+        conn = pymysql.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            database=DB_NAME
+        )
+        return conn
+    except pymysql.MySQLError as e:
+        print(f"Database connection failed: {e}")
+        raise
 
         # Users table
         cursor.execute('''CREATE TABLE IF NOT EXISTS users (
