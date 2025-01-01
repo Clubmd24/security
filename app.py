@@ -153,9 +153,9 @@ def login():
         user = cursor.fetchone()
         conn.close()
 
-        if user:
-    session['username'] = user['username']
-    session['role'] = user['role']
+    if user:
+        session['username'] = user['username']
+        session['role'] = user['role']
     
     if user['role'] == 'administrator':
         return redirect(url_for('admin'))
