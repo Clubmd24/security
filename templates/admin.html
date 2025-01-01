@@ -25,22 +25,35 @@
         </select>
         <button type="submit">Add User</button>
     </form>
-
-    <h2>Add New Entry</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="add_record">
-        <label for="full_name">Full Name:</label>
-        <input type="text" name="full_name" required>
-        <label for="date_barred">Date Barred:</label>
-        <input type="date" name="date_barred" required>
-        <label for="date_bar_expires">Date Bar Expires:</label>
-        <input type="date" name="date_bar_expires" required>
-        <label for="reason">Reason:</label>
-        <textarea name="reason" required></textarea>
-        <label for="image">Upload Image:</label>
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit">Add Entry</button>
-    </form>
+<h2>Add New Entry</h2>
+<form method="POST" enctype="multipart/form-data" action="/admin">
+    <!-- Hidden input to indicate the specific action -->
+    <input type="hidden" name="add_entry" value="1">
+    
+    <!-- Full Name Field -->
+    <label for="full_name">Full Name:</label>
+    <input type="text" name="full_name" id="full_name" required>
+    
+    <!-- Date Barred Field -->
+    <label for="date_barred">Date Barred:</label>
+    <input type="date" name="date_barred" id="date_barred" required>
+    
+    <!-- Date Bar Expires Field -->
+    <label for="date_bar_expires">Date Bar Expires:</label>
+    <input type="date" name="date_bar_expires" id="date_bar_expires" required>
+    
+    <!-- Reason Field -->
+    <label for="reason">Reason:</label>
+    <textarea name="reason" id="reason" required></textarea>
+    
+    <!-- Image Upload -->
+    <label for="image">Upload Image:</label>
+    <input type="file" name="image" id="image" accept="image/*" required>
+    
+    <!-- Submit Button -->
+    <button type="submit">Add Entry</button>
+</form>
+   
 
     <h2>Current Users</h2>
     <ul>
