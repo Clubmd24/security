@@ -154,9 +154,9 @@ def login():
         conn.close()
 
     if user:
-        session['username'] = user['username']
-        session['role'] = user['role']
-    
+    session['username'] = user['username']
+    session['role'] = user['role']
+
     if user['role'] == 'administrator':
         return redirect(url_for('admin'))
     elif user['role'] == 'standard':
@@ -164,10 +164,10 @@ def login():
     else:
         flash('Role not recognized')
         return render_template('login.html')
-    else:
-        flash('Invalid username, password, or role')
+else:
+    flash('Invalid username, password, or role')
 
-    return render_template('login.html')
+return render_template('login.html')
 
 
 @app.route('/logout')
