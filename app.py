@@ -161,7 +161,7 @@ def login():
             # Trim input and handle case insensitivity in the query
             cursor.execute(
                 'SELECT * FROM users WHERE LOWER(username) = LOWER(%s) AND password = %s AND LOWER(role) = LOWER(%s)',
-                (username.strip(), password.strip(), role.strip())
+                (username, password, role[:50])  # Truncate role to 50 characters
             )
             user = cursor.fetchone()
 
