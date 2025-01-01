@@ -153,7 +153,7 @@ def login():
         user = cursor.fetchone()
         conn.close()
 
-        f user:
+        if user:
     session['username'] = user['username']
     session['role'] = user['role']
     
