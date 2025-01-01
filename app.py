@@ -149,49 +149,36 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        role = request.form['role']
+        role = request.form['role']  # This should correspond to 'admin' or 'standard'
 
-        # Debug logging for incoming credentials
         app.logger.info(f"User attempting login: {username} with role: {role}")
 
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        
-        try:
-            # Trim input and handle case insensitivity in the query
-            cursor.execute(
-                'SELECT * FROM users WHERE LOWER(username) = LOWER(%s) AND password = %s AND LOWER(role) = LOWER(%s)',
-                (username, password, role[:50])  # Truncate role to 50 characters
-            )
-            user = cursor.fetchone()
+        cursor.execute(
+            'SELECT * FROM users WHERE username = %s AND password = %s AND role = %s',
+            (username, password, role)
+        )
+        user = cursor.fetchone()
+        conn.close()
 
-            # Debug logging for query result
-            app.logger.debug(f"Query result: {user}")
+        app.logger.debug(f"Query result: {user}")
 
-            if user:
-                session['username'] = user['username']
-                session['role'] = user['role']
-
-                # Redirect based on role
-                if user['role'] == 'administrator':
-                    return redirect(url_for('admin'))
-                elif user['role'] == 'standard':
-                    return redirect(url_for('index'))
-                else:
-                    flash('Role not recognized')
-                    return render_template('login.html')
+        if user:
+            session['username'] = user['username']
+            session['role'] = user['role']
+            if user['role'] == 'admin':
+                return redirect(url_for('admin'))
+            elif user['role'] == 'standard':
+                return redirect(url_for('index'))
             else:
-                # Log invalid login attempt
-                app.logger.warning(f"Invalid login for: {username}")
-                flash('Invalid username, password, or role')
-        except Exception as e:
-            # Log any database query errors
-            app.logger.error(f"Database error during login: {e}")
-            flash('An error occurred during login. Please try again later.')
-        finally:
-            conn.close()
+                flash('Invalid role')
+        else:
+            app.logger.warning(f"Invalid login for: {username}")
+            flash('Invalid username, password, or role')
 
     return render_template('login.html')
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
