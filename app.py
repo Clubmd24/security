@@ -151,29 +151,35 @@ def login():
         password = request.form['password']
         role = request.form['role']
 
+        app.logger.info(f"User attempting login: {username} with role: {role}")
+
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s AND role = %s', (username, password, role))
+        cursor.execute(
+            'SELECT * FROM users WHERE username = %s AND password = %s AND role = %s',
+            (username, password, role)
+        )
         user = cursor.fetchone()
         conn.close()
 
-    if user:
-    session['username'] = user['username']
-    session['role'] = user['role']
-    
-    # Redirect based on user role
-    if user['role'] == 'administrator':
-        return redirect(url_for('admin'))
-    elif user['role'] == 'standard':
-        return redirect(url_for('index'))
-    else:
-        # Handle unexpected role values
-        flash(f"Unrecognized role: {user['role']}")
-else:
-    flash('Invalid username, password, or role')
+        if user:
+            app.logger.info(f"Login success for: {username} with role: {role}")
+            session['username'] = user['username']
+            session['role'] = user['role']
 
-# Return to login page if authentication fails
-return render_template('login.html')
+            if user['role'] == 'administrator':
+                return redirect(url_for('admin'))
+            elif user['role'] == 'user':
+                return redirect(url_for('index'))
+            else:
+                app.logger.warning(f"Unrecognized role for user: {username}")
+                flash('Unrecognized role. Please contact support.')
+                return render_template('login.html')
+        else:
+            app.logger.warning(f"Invalid login for: {username}")
+            flash('Invalid username, password, or role')
+
+    return render_template('login.html')
 
 
 @app.route('/logout')
