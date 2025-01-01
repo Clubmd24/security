@@ -86,3 +86,36 @@ form {
 label {
     font-weight: bold;
 }
+
+.records-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.record {
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    align-items: center;
+}
+
+.record img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 15px;
+}
+
+.details {
+    display: flex;
+    flex-direction: column;
+}
+
+.details p {
+    margin: 5px 0;
+}
