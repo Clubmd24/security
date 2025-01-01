@@ -169,7 +169,7 @@ def login():
             session['role'] = user['role']
             if user['role'] == 'admin':
                 return redirect(url_for('admin'))
-            elif user['role'] == 'standard':
+            elif user['role'] == 'user':
                 return redirect(url_for('index'))
             else:
                 flash('Invalid role')
