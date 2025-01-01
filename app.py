@@ -96,6 +96,7 @@ def calculate_distance(coord1, coord2):
     return R * c
 
 # Routes
+
 @app.route('/')
 def index():
     if 'username' not in session:
@@ -193,7 +194,7 @@ def admin():
             except pymysql.IntegrityError:
                 flash('Username already exists')
 
-        if 'add_record' in request.form:
+        elif 'add_entry' in request.form:
             full_name = request.form['full_name']
             date_barred = request.form['date_barred']
             date_bar_expires = request.form['date_bar_expires']
@@ -215,8 +216,10 @@ def admin():
                 image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 image.save(image_path)
 
-                cursor.execute('INSERT INTO images (full_name, date_barred, date_bar_expires, reason, image_filename) VALUES (%s, %s, %s, %s, %s)', 
-                               (full_name, date_barred, date_bar_expires, reason, filename))
+                cursor.execute(
+                    'INSERT INTO images (full_name, date_barred, date_bar_expires, reason, image_filename) VALUES (%s, %s, %s, %s, %s)',
+                    (full_name, date_barred, date_bar_expires, reason, filename)
+                )
                 conn.commit()
                 flash('Record added successfully')
 
