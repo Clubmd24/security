@@ -274,8 +274,24 @@ def add_entry():
     image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     image.save(image_path)
 
+      try:
+        # Save the image
+        image.save(image_path)
+
+        # Insert entry into the database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO images (full_name, date_barred, date_bar_expires, reason, image_filename) VALUES (%s, %s, %s, %s, %s)', 
+                       (full_name, date_barred, date_bar_expires, reason, filename))
+        conn.commit()
+        flash('Entry added successfully!')
+    except pymysql.MySQLError as e:
+        print(f"Error adding entry: {e}")
+        flash("Failed to add entry. Please try again.")
+    finally:
+        conn.close()
+
     conn = get_db_connection()
-    cursor = conn.cursor()
 
     cursor.execute('INSERT INTO images (full_name, date_barred, date_bar_expires, reason, image_filename) VALUES (%s, %s, %s, %s, %s)', 
                    (full_name, date_barred, date_bar_expires, reason, filename))
