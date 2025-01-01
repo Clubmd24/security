@@ -140,6 +140,10 @@ def index():
 
     return render_template('index.html', records=records, search_query=search_query, sort_option=sort_option)
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
