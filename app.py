@@ -272,17 +272,20 @@ def add_entry():
 
     filename = secure_filename(image.filename)
     image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    image.save(image_path)
 
-      try:
+    try:
         # Save the image
+        if not os.path.exists(app.config['UPLOAD_FOLDER']):
+            os.makedirs(app.config['UPLOAD_FOLDER'])
         image.save(image_path)
 
         # Insert entry into the database
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO images (full_name, date_barred, date_bar_expires, reason, image_filename) VALUES (%s, %s, %s, %s, %s)', 
-                       (full_name, date_barred, date_bar_expires, reason, filename))
+        cursor.execute(
+            'INSERT INTO images (full_name, date_barred, date_bar_expires, reason, image_filename) VALUES (%s, %s, %s, %s, %s)', 
+            (full_name, date_barred, date_bar_expires, reason, filename)
+        )
         conn.commit()
         flash('Entry added successfully!')
     except pymysql.MySQLError as e:
@@ -291,15 +294,4 @@ def add_entry():
     finally:
         conn.close()
 
-    conn = get_db_connection()
-
-    cursor.execute('INSERT INTO images (full_name, date_barred, date_bar_expires, reason, image_filename) VALUES (%s, %s, %s, %s, %s)', 
-                   (full_name, date_barred, date_bar_expires, reason, filename))
-    conn.commit()
-    conn.close()
-
-    flash('Entry added successfully!')
     return redirect(url_for('admin'))
-
-if __name__ == '__main__':
-    app.run(debug=True)
