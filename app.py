@@ -153,14 +153,19 @@ def login():
         user = cursor.fetchone()
         conn.close()
 
-        if user:
-            session['username'] = user['username']
-            session['role'] = user['role']
-            if user['role'] == 'administrator':
-                return redirect(url_for('admin'))
-            return redirect(url_for('index'))
-        else:
-            flash('Invalid username, password, or role')
+        f user:
+    session['username'] = user['username']
+    session['role'] = user['role']
+    
+    if user['role'] == 'administrator':
+        return redirect(url_for('admin'))
+    elif user['role'] == 'standard':
+        return redirect(url_for('index'))  # Explicit for standard users
+    else:
+        flash('Role not recognized')
+        return render_template('login.html')
+else:
+    flash('Invalid username, password, or role')
 
     return render_template('login.html')
 
