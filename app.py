@@ -137,36 +137,25 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        role = request.form['role']
 
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password))
+        cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s AND role = %s', (username, password, role))
         user = cursor.fetchone()
         conn.close()
 
         if user:
-            if user['role'] != 'administrator':
-                # Get client IP and location
-                user_ip = request.remote_addr
-                user_location = get_user_location(user_ip)
-
-                if not user_location:
-                    flash("Unable to determine your location. Access denied.")
-                    return render_template('login.html')
-
-                distance = calculate_distance(PINNED_LOCATION, user_location)
-
-                if distance > ALLOWED_RADIUS:
-                    flash("Access denied: You are not within the permitted location.")
-                    return render_template('login.html')
-
             session['username'] = user['username']
             session['role'] = user['role']
+            if user['role'] == 'administrator':
+                return redirect(url_for('admin'))
             return redirect(url_for('index'))
         else:
-            flash('Invalid username or password')
+            flash('Invalid username, password, or role')
 
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
