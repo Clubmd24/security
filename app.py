@@ -149,7 +149,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        role = request.form['role']  # This should correspond to 'admin' or 'user'
+        role = request.form['role']  # This should correspond to 'administrator' or 'user'
 
         app.logger.info(f"User attempting login: {username} with role: {role}")
 
@@ -167,7 +167,7 @@ def login():
         if user:
             session['username'] = user['username']
             session['role'] = user['role']
-            if user['role'] == 'admin':
+            if user['role'] == 'administrator':
                 return redirect(url_for('admin'))
             elif user['role'] == 'user':
                 return redirect(url_for('index'))
