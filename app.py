@@ -164,8 +164,8 @@ def login():
     else:
         flash('Role not recognized')
         return render_template('login.html')
-else:
-    flash('Invalid username, password, or role')
+    else:
+        flash('Invalid username, password, or role')
 
 return render_template('login.html')
 
